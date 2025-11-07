@@ -101,3 +101,6 @@ export const careerInputSanitation = z.object({
   province: z.string().optional(),
   employmentType: z.string().optional(),
 });
+
+// infer type
+export type careerInputData = z.infer<typeof careerInputSanitation>;
