@@ -2,9 +2,22 @@ import { NextResponse } from "next/server";
 import connectMongoDB from "@/lib/mongoDB/mongoDB";
 import { guid } from "@/lib/Utils";
 import { ObjectId } from "mongodb";
+import { careerInputSanitation } from "@/lib/utils/helpersV2";
 
 export async function POST(request: Request) {
   try {
+    // added sanitazion layer
+    // makes sure only santizied values pass through
+    const body = await request.json();
+    const parsed = careerInputSanitation.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid or missing input: ', details: parsed.error.errors },
+        { status: 400 }
+      );
+    }
+    const data = parsed.data;
+
     const {
       jobTitle,
       description,
@@ -24,7 +37,11 @@ export async function POST(request: Request) {
       country,
       province,
       employmentType,
-    } = await request.json();
+    } = data; // use santized values
+
+    if (typeof orgID !== 'string') {
+      return NextResponse.json({ error: 'Invalid orgID format'}, { status: 400 });
+    }
     // Validate required fields
     if (!jobTitle || !description || !questions || !location || !workSetup) {
       return NextResponse.json(

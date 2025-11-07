@@ -92,8 +92,9 @@ export default function CareersV2Table() {
 
   useEffect(() => {
     const fetchOrgDetails = async () => {
+      if (activeOrg?._id) return;
       try {
-        const orgDetails = await axios.post("/api/feth-org-details", {
+        const orgDetails = await axios.post("/api/fetch-org-details", {
           orgID: activeOrg._id,
         });
         setAvailableJobSlots((orgDetails.data?.plan?.jobLimit || 3) + (orgDetails.data?.extraJobSlots || 0));
@@ -102,9 +103,7 @@ export default function CareersV2Table() {
         errorToast("Error fetching organization details", 1500);
       }
     }
-      if (activeOrg) {
-        fetchOrgDetails();
-    }
+      fetchOrgDetails();
   }, [activeOrg]);
 
   const requestSort = (key) => {
@@ -158,14 +157,14 @@ export default function CareersV2Table() {
     <a 
     href="/recruiter-dashboard/careers/new-career"
     data-tooltip-id="add-career-tooltip"
-    data-tooltip-html={`You have reached the maximum number of jobs for your plan. Please upgrade your plan to add more jobs.`}
+    // data-tooltip-html={`You have reached the maximum number of jobs for your plan. Please upgrade your plan to add more jobs.`}
     >
     <button className="button-primary-v2"
-    disabled={totalActiveCareers >= availableJobSlots}
-    style={{ 
-      opacity: totalActiveCareers >= availableJobSlots ? 0.5 : 1, 
-      cursor: totalActiveCareers >= availableJobSlots ? "not-allowed" : "pointer"
-    }}
+    // disabled={totalActiveCareers >= availableJobSlots}
+    // style={{ 
+    //   opacity: totalActiveCareers >= availableJobSlots ? 0.5 : 1, 
+    //   cursor: totalActiveCareers >= availableJobSlots ? "not-allowed" : "pointer"
+    // }}
     >
       <i className="la la-plus" /> Add new career
     </button>

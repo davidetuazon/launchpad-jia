@@ -58,10 +58,15 @@ try {
     })));
 
     // Send email to new members
-    await Promise.all(members.map((member: any) => sendEmail({
+    // ignore mail service on development
+    if (process.env.NODE_ENV !== "development") {
+        await Promise.all(members.map((member: any) => sendEmail({
         recipient: member.email,
         html: getInvitationEmailTemplate(member.email, name, member.role),
     })));
+    } else {
+        console.log("Development mode: skipping sending invitation emails", members);
+    }
     return NextResponse.json({ orgID: organization.insertedId.toString() });
 } catch (error) {
     console.error(error);

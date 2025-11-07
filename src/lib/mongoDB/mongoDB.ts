@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 
-let uri = process.env.MONGODB_URI;
+let uri = process.env.NODE_ENV === "development" ? process.env.MONGODB_URI_LOCAL : process.env.MONGODB_URI;
 let dbName = "jia-db";
 
 let cachedClient = null;
