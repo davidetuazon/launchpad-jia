@@ -39,6 +39,7 @@ export default function CustomDropdown(props) {
             {settingList.map((setting, index) => (
               <div style={{ borderBottom: "1px solid #ddd" }} key={index}>
                 <button
+                  type="button" // prevents default submit
                   className="dropdown-item d-flex align-items-center"
                   style={{
                     minWidth: 220,

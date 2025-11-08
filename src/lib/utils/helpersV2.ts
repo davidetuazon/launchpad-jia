@@ -80,26 +80,28 @@ const questionsSchema = z.object({
   questions: z.array(z.any()).optional(),
 });
 
+const genericErrorMessage = 'This is a required field.';
+
 // do the transforming/cleaning job
 export const careerInputSanitation = z.object({
-  jobTitle: z.string().min(1).transform(clean),
-  description: z.string().min(1).transform(clean),
-  questions: z.array(questionsSchema).optional(),
-  lastEditedBy: z.any().optional(),
-  createdBy: z.any().optional(),
-  screeningSetting: z.any().optional(),
-  orgID: z.string(),
-  requireVideo: z.boolean().optional(),
-  location: z.string().min(1).transform(clean),
-  workSetup: z.string().min(1).transform(clean),
+  jobTitle: z.string().min(1, { message: genericErrorMessage }).transform(clean),
+  description: z.string().min(1, { message: genericErrorMessage }).transform(clean),
+  workSetup: z.string().min(1, { message: genericErrorMessage }).transform(clean),
+  location: z.string().min(1, { message: genericErrorMessage }).transform(clean),
+  country: z.string().min(1, { message: genericErrorMessage }).optional(),
+  province: z.string().min(1, { message: genericErrorMessage }).optional(),
+  employmentType: z.string().min(1, { message: genericErrorMessage }).optional(),
+  minimumSalary: z.number({ invalid_type_error: genericErrorMessage }).optional(),
+  maximumSalary: z.number({ invalid_type_error: genericErrorMessage }).optional(),
   workSetupRemarks: z.string().optional().transform(val => val ? clean(val) : ""),
+  questions: z.array(questionsSchema).optional(),
+  orgID: z.string(),
   status: z.string().optional(),
-  salaryNegotiable: z.boolean().optional(),
-  minimumSalary: z.number().optional(),
-  maximumSalary: z.number().optional(),
-  country: z.string().optional(),
-  province: z.string().optional(),
-  employmentType: z.string().optional(),
+  createdBy: z.any().optional(),
+  lastEditedBy: z.any().optional(),
+  requireVideo: z.boolean().optional(),
+  screeningSetting: z.any().optional(),
+  salaryNegotiable: z.boolean().optional(),  
 });
 
 // infer type

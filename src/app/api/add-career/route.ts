@@ -42,8 +42,11 @@ export async function POST(request: Request) {
     if (typeof orgID !== 'string') {
       return NextResponse.json({ error: 'Invalid orgID format'}, { status: 400 });
     }
+    // bypass questions requirements for career drafts
+    // still enforces requirements on 'active' career postings
+    const isDraft = status === 'inactive';
     // Validate required fields
-    if (!jobTitle || !description || !questions || !location || !workSetup) {
+    if (!jobTitle || !description || !location || !workSetup || (!isDraft && !questions) ) {
       return NextResponse.json(
         {
           error:

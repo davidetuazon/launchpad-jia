@@ -19,8 +19,10 @@ import {  zodResolver } from '@hookform/resolvers/zod';
 import CareerFormDetails from "../CareerStepperComponents/CareerFormDetails";
 
 export default function CareerFormStepper({ career, formType, setShowEditModal }: { career?: any, formType: string, setShowEditModal?: (show: boolean) => void }) {
+    const { user, orgID } = useAppContext();
     const [isSavingCareer, setIsSavingCareer] = useState(false);
     const [isFormEmpty, setIsFormEmpty] = useState(true);
+    const [showSaveModal, setShowSaveModal] = useState<'active' | 'inactive' | ''>('');
     const [step, setStep] = useState(0);
     
     const steps = [
@@ -30,6 +32,10 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
         { title: 'Review Career' }
     ];
 
+    const stepFields = [
+        ['jobTitle', 'employmentType', 'workSetup', 'minimumSalary', 'maximumSalary', 'description'],
+    ]
+
     const methods = useForm({
         resolver: zodResolver(careerInputSanitation),
         defaultValues: {
@@ -37,7 +43,11 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
             requireVideo: career?.requireVideo ?? true,
             salaryNegotiable: career?.salaryNegotiable ?? true,
         },
+        mode: 'onSubmit',
+        reValidateMode: 'onBlur'
     });
+
+    const { trigger } = methods;
     
     /**
      * Career draft setting-getting functions
@@ -100,15 +110,72 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
     }, [loadFromLocal]);
 
     /**
+     * stepper form navigation
+     * progressing the form saves each step as a draft to localstorage
+     */
+    // ensure required form fields are filled for the current step before progressing the form
+    const validateStep = async (stepIndex: number) => {
+        const fields = stepFields[stepIndex];
+        const isValid = await trigger(fields, { shouldFocus: true });
+        if (!isValid) {
+            setStep(stepIndex);
+            errorToast(`Please complete required fields at ${steps[stepIndex].title}.`, 2000);
+            return false;
+        }
+        
+        // include check for max > min salary as well for validation
+        if (fields.includes("minimumSalary") || fields.includes("maximumSalary")) {
+            const { minimumSalary, maximumSalary } = methods.getValues()
+            if (Number(minimumSalary) && Number(maximumSalary) && Number(minimumSalary) > Number(maximumSalary)) {
+                errorToast("Minimum salary cannot be greater than maximum salary.", 2000);
+                setStep(0);
+                return false;
+            }
+        }
+        return true;
+    };
+
+    // enforces form validity check before allowing to progress
+    const handleNext = async () => {
+        if (!(await validateStep(step))) return;
+
+        const data = methods.getValues();
+        saveToLocal(data, step + 1);
+        setStep((prev) => Math.min(prev + 1, steps.length - 1));
+    };
+
+    // allows backtracking
+    const handlePrev = () => {
+        setStep((prev) => Math.max(prev - 1, 0));
+    }
+
+    /**
      * form submit handler
      */
-    const onSubmit = async (data: careerInputData) => {
-        console.log({onSubmit_data: data});
+    // unified submit handler for both add and edit career
+    const onSubmit = async (data: careerInputData, status: 'active' | 'inactive') => {
+        let userInfoSlice = {
+            image: user.image,
+            name: user.name,
+            email: user.email,
+        };
+
+        const payload = {
+            ...data,
+            orgID,
+            status,
+            lastEditedBy: userInfoSlice,
+            createdBy: userInfoSlice,
+            minimumSalary: isNaN(Number(data.minimumSalary)) ? null : Number(data.minimumSalary),
+            maximumSalary: isNaN(Number(data.maximumSalary)) ? null : Number(data.maximumSalary),
+            question: data.questions || [],
+        }
+
         try {
             setIsSavingCareer(true);
             const response = formType === "add"
-                ? await axios.post('/api/add-career', data)
-                : await axios.post('/api/update-career', data);
+                ? await axios.post('/api/add-career', payload)
+                : await axios.post('/api/update-career', payload);
 
             if (response.status === 200) {
                 candidateActionToast(
@@ -126,34 +193,55 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                 }, 1300);
             }
         } catch (error) {
+            console.log({ error });
             errorToast("Failed to add career", 1300);
         } finally {
             setIsSavingCareer(false);
         }
     }
 
-    /**
-     * stepper form navigation
-     * progressing the form saves each step as a draft to localstorage
-     */
-    const handleNext = () => {
-        const data = methods.getValues();
-        saveToLocal(data, step + 1);
-        setStep((prev) => Math.min(prev + 1, steps.length - 1));
-    };
-
-    const handlePrev = () => {
-        setStep((prev) => Math.max(prev - 1, 0));
+    // handle redirect to form field with errors
+    // also handles opening action modal for action confirmation
+    const handleFinalSubmit = async (status: 'active' | 'inactive') => {
+        for (let i = 0; i < stepFields.length; i++) {
+            if (!(await validateStep(i))) return;
+        }
+        setShowSaveModal(status);
     }
+
+    // closes action modal
+    // calls onSubmit
+    // skips validations for career drafts marked as 'inactive'
+    // enforces validations on to be published careers
+    const confirmSaveCareer = async (status: 'active' | 'inactive') => {
+        setIsSavingCareer(true);
+        const data = methods.getValues();
+        setShowSaveModal('');
+        try {
+            // For inactive/draft saves, skip validation
+            if (status === 'inactive') {
+                await onSubmit(data, status);
+                return;
+            } else {
+                await methods.handleSubmit(async (data) => {
+                    await onSubmit(data, status);
+                })();
+            }
+        } finally {
+            setIsSavingCareer(false);
+        }
+    };
 
     return (
         <div className="col">
             <FormProvider {...methods}>
                 <form
-                    onSubmit={methods.handleSubmit(onSubmit)}
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                    }}
                 >
                     <div
-                        className="flex justify-between mt-6"
+                        // className="flex justify-between mt-6"
                         style={{
                             display: "flex",
                             flexDirection: "row",
@@ -177,6 +265,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                             }}
                         >
                         <button
+                            type="button"
                             disabled={step === 0 || isFormEmpty}
                             onClick={handlePrev}
                             style={{
@@ -192,10 +281,28 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                         >
                             Back
                         </button>
+                         <button
+                            type="button"
+                            onClick={() => handleFinalSubmit('inactive')}
+                            disabled={isSavingCareer || isFormEmpty}
+                            style={{
+                                width: "fit-content",
+                                color: "#414651",
+                                background: "#fff",
+                                border: "1px solid #D5D7DA",
+                                padding: "8px 16px",
+                                borderRadius: "60px",
+                                cursor: isSavingCareer || isFormEmpty  ? "not-allowed" : "pointer",
+                                whiteSpace: "nowrap"
+                            }}
+                        >
+                                Save as Unpublished
+                        </button>
                         { step < steps.length - 1 ? (
                           <button
-                            disabled={isSavingCareer || isFormEmpty}
+                            type="button"
                             onClick={handleNext}
+                            disabled={isSavingCareer || isFormEmpty}
                             style={{
                                 width: "fit-content",
                                 background: isFormEmpty ?  "#414651" : "black",
@@ -219,7 +326,8 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                             </button>  
                         ) : (
                             <button
-                                type="submit"
+                                type="button"
+                                onClick={() => handleFinalSubmit('active')}
                                 disabled={isSavingCareer}
                                 style={{
                                     width: "fit-content",
@@ -232,7 +340,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                                     whiteSpace: "nowrap"
                                 }}
                             >
-                                Save and Submit&nbsp;
+                                Publish&nbsp;
                                 <i className="la la-check-circle" style={{ color: "#fff", fontSize: 20, marginRight: 8 }}></i>
                             </button>
                         )}
@@ -243,6 +351,18 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                     {step === 2 && <CareerFormAiInterviewSetup />}
                     {step === 3 && <CareerFormReview />} */}
                 </form>
+                {showSaveModal && (
+                    <CareerActionModal 
+                        action={showSaveModal} 
+                        onAction={(action) => confirmSaveCareer(action as 'active' | 'inactive')} 
+                    />
+                )}
+                {isSavingCareer && (
+                    <FullScreenLoadingAnimation
+                        title={formType === "add" ? "Saving career..." : "Updating career..."}
+                        subtext={`Please wait while we are ${formType === "add" ? "saving" : "updating"} the career`}
+                    />
+                )}
             </FormProvider>
         </div>
     )

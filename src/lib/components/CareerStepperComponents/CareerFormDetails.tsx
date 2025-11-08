@@ -1,20 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import RichTextEditor from "@/lib/components/CareerComponents/RichTextEditor";
 import CustomDropdown from "@/lib/components/CareerComponents/CustomDropdown";
 import philippineCitiesAndProvinces from "../../../../public/philippines-locations.json";
-import { candidateActionToast, errorToast } from "@/lib/Utils";
-import { useAppContext } from "@/lib/context/AppContext";
-import axios from "axios";
-import CareerActionModal from "../CareerComponents/CareerActionModal";
-import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAnimation";
-
-// imports for implementing stepper/segmented career form
-import { careerInputSanitation, careerInputData } from "@/lib/utils/helpersV2";
-import {  zodResolver } from '@hookform/resolvers/zod';
 import { useFormContext, Controller } from "react-hook-form";
-import usePhilippineLocation from "./usePhilippineLocations";
 
 type Props = {
     career: any,
@@ -43,7 +33,7 @@ const employmentTypeOptions = [
 ];
 
 export default function CareerFormDetails({ career, onFormStateChange }: Props) {
-    const { register, control, watch, setValue } = useFormContext();
+    const { register, control, watch, setValue, formState: { errors } } = useFormContext();
     
     const selectedProvince = watch('province');
     const [provinceList, setProvinceList] = useState(philippineCitiesAndProvinces.provinces);
@@ -60,6 +50,8 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
         "description",
     ]);
 
+    // works kind of like isDirty
+    // allows parent component to check on child components 'isDirty' state
     useEffect(() => {
         const isEmpty = watchedFields.every((field) => {
             if (typeof field === 'string') return field.trim() === "";
@@ -70,6 +62,9 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
         onFormStateChange?.(isEmpty);
     }, [watchedFields, onFormStateChange]);
 
+    // if career.province exists, use it
+    // else prefills the list with the first province
+    // then gets only cities from that province
     useEffect(() => {
         const initialProvince = career?.province || provinceList[0]?.name;
         const cities = philippineCitiesAndProvinces.cities.filter(
@@ -77,11 +72,12 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
         );
         setCityList(cities);
         if (cities[0]) {
-            setValue('city', career?.location || cities[0].name);
+            setValue('location', career?.location || cities[0].name);
         }
         setValue('province', initialProvince);
     }, [career, provinceList, setValue]);
 
+    // listens to province changes and updates city list accordingly
     useEffect(() => {
         if (!selectedProvince) return;
         const provinceObj = provinceList.find((p) => p.name === selectedProvince);
@@ -91,9 +87,10 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
         (c) => c.province === provinceObj.key
         );
         setCityList(cities);
-        if (cities.length > 0) setValue('city', cities[0].name);
+        if (cities.length > 0) setValue('location', cities[0].name);
     }, [selectedProvince, provinceList, setValue]);
 
+    // negotiable toggling mount
     useEffect(() => {
         if (career?.salaryNegotiable !== undefined) {
             setValue("salaryNegotiable", career.salaryNegotiable);
@@ -120,6 +117,11 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                         className="form-control"
                         placeholder="Enter job title"
                         />
+                        { errors.jobTitle?.message && (
+                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350 }}>
+                                {errors.jobTitle.message as string}
+                            </p>
+                        )}
 
                         {/* WORK SETTING */}
                         <span style={{fontSize: 16, color: "#181D27", fontWeight: 700}}>Work Setting</span>
@@ -130,13 +132,20 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                     name="employmentType"
                                     control={control}
                                     defaultValue={career?.employmentType || ''}
-                                    render={({ field: { onChange, value }}) => (
+                                    render={({ field: { onChange, value }, fieldState }) => (
+                                        <>
                                         <CustomDropdown
                                             onSelectSetting={onChange}
                                             screeningSetting={value}
                                             settingList={employmentTypeOptions}
                                             placeholder="Select Employment Type"
                                         />
+                                        { fieldState.error && (
+                                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                                {fieldState.error.message}
+                                            </p>
+                                        )}
+                                        </>
                                     )}
                                 />
                             </div>
@@ -146,13 +155,20 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                     name="workSetup"
                                     control={control}
                                     defaultValue={career?.workSetup || ''}
-                                    render={({ field: { onChange, value }}) => (
+                                    render={({ field: { onChange, value }, fieldState}) => (
+                                        <>
                                         <CustomDropdown
                                             onSelectSetting={onChange}
                                             screeningSetting={value}
                                             settingList={workSetupOptions}
                                             placeholder="Select Work Setup"
                                         />
+                                        { fieldState.error && (
+                                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                                {fieldState.error.message}
+                                            </p>
+                                        )}
+                                        </>
                                     )}
                                 />
                             </div>
@@ -167,13 +183,20 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                     name="country"
                                     control={control}
                                     defaultValue={career?.country || 'Philippines'}
-                                    render={({ field: { onChange, value }}) => (
-                                        <CustomDropdown
-                                            onSelectSetting={onChange}
-                                            screeningSetting={value}
-                                            settingList={[]}
-                                            placeholder="Select Country"
-                                        />
+                                    render={({ field: { onChange, value }, fieldState }) => (
+                                        <>
+                                            <CustomDropdown
+                                                onSelectSetting={onChange}
+                                                screeningSetting={value}
+                                                settingList={[]}
+                                                placeholder="Select Country"
+                                            />
+                                            { fieldState.error && (
+                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                                    {fieldState.error.message}
+                                                </p>
+                                            )}
+                                        </>
                                     )}
                                 />
                             </div>
@@ -183,29 +206,43 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                     name="province"
                                     control={control}
                                     defaultValue={career?.province || provinceList[0]?.name || ''}
-                                    render={({ field: { onChange, value }}) => (
-                                        <CustomDropdown
-                                            onSelectSetting={(val) => onChange(val)}
-                                            screeningSetting={value}
-                                            settingList={provinceList}
-                                            placeholder="Select State / Province"
-                                        />
+                                    render={({ field: { onChange, value }, fieldState }) => (
+                                        <>
+                                            <CustomDropdown
+                                                onSelectSetting={onChange}
+                                                screeningSetting={value}
+                                                settingList={provinceList}
+                                                placeholder="Select State / Province"
+                                            />
+                                            { fieldState.error && (
+                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                                    {fieldState.error.message}
+                                                </p>
+                                            )}
+                                        </>
                                     )}
                                 />
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                                 <span style={{ padding: '2px 0px'}}>City</span>
                                 <Controller
-                                    name="city"
+                                    name="location"
                                     control={control}
                                     defaultValue={career?.location || ''}
-                                    render={({ field: { onChange, value }}) => (
-                                        <CustomDropdown
-                                            onSelectSetting={(val) => onChange(val)}
-                                            screeningSetting={value}
-                                            settingList={cityList}
-                                            placeholder="Select City"
-                                        />
+                                    render={({ field: { onChange, value }, fieldState }) => (
+                                        <>
+                                            <CustomDropdown
+                                                onSelectSetting={onChange}
+                                                screeningSetting={value}
+                                                settingList={cityList}
+                                                placeholder="Select City"
+                                            />
+                                            { fieldState.error && (
+                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                                    {fieldState.error.message}
+                                                </p>
+                                            )}
+                                        </>
                                     )}
                                 />
                             </div>
@@ -250,7 +287,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                         name="minimumSalary"
                                         control={control}
                                         defaultValue={career?.minimumSalary || ''}
-                                        render={({ field: { onChange, value }}) => (
+                                        render={({ field: { onChange, value } }) => (
                                             <input
                                                 type="number"
                                                 className="form-control"
@@ -258,7 +295,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                                 placeholder="0"
                                                 min={0}
                                                 value={value}
-                                                onChange={(val) => onChange(val)}
+                                                onChange={(e) => onChange(Number(e.target.value))}
                                             />
                                         )}
                                     />
@@ -274,6 +311,11 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                         PHP
                                     </span>
                                 </div>
+                                {errors.minimumSalary?.message && (
+                                    <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                    {errors.minimumSalary.message as string}
+                                    </p>
+                                )}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                                 <span style={{ padding: '2px 0px'}}>Maximum Salary</span>
@@ -303,7 +345,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                                 placeholder="0"
                                                 min={0}
                                                 value={value}
-                                                onChange={(val) => onChange(val)}
+                                                onChange={(e) => onChange(Number(e.target.value))}
                                             />
                                         )}
                                     />
@@ -319,6 +361,11 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                         PHP
                                     </span>
                                 </div>
+                                {errors.maximumSalary?.message && (
+                                    <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                    {errors.maximumSalary.message as string}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -333,8 +380,15 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                             name="description"
                             control={control}
                             defaultValue={career?.description || ""}
-                            render={({ field: { onChange, value } }) => (
-                                <RichTextEditor text={value} setText={onChange} />
+                            render={({ field: { onChange, value }, fieldState }) => (
+                                <>
+                                    <RichTextEditor text={value} setText={onChange} />
+                                    { fieldState.error && (
+                                        <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                            {fieldState.error.message}
+                                        </p>
+                                    )}
+                                </>
                             )}
                         />
                 </div>
