@@ -75,9 +75,12 @@ const clean = (val: string) => sanitizeHtml(val, { allowedTags: [], allowedAttri
 // nested question validation + sanitation
 const questionsSchema = z.object({
   id: z.union([z.string(), z.number()]),
-  category: z.string().min(1).transform(clean),
-  questionCountToAsk: z.number().nullable().optional(),
-  questions: z.array(z.any()).optional(),
+  category: z.string(),
+  questionCountToAsk: z.number().nullable(),
+  questions: z.array(z.object({
+    id: z.string(),
+    question: z.string().min(1, { message: 'Question cannot be empty' })
+  })).default([]),
 });
 
 const genericErrorMessage = 'This is a required field.';
@@ -93,14 +96,21 @@ export const careerInputSanitation = z.object({
   employmentType: z.string().min(1, { message: genericErrorMessage }).optional(),
   minimumSalary: z.number({ invalid_type_error: genericErrorMessage }).optional(),
   maximumSalary: z.number({ invalid_type_error: genericErrorMessage }).optional(),
+  cvScreeningSetting: z.string().min(1, { message: genericErrorMessage }).optional(),
+  aiScreeningSetting: z.string().min(1, { message: genericErrorMessage }).optional(),
   workSetupRemarks: z.string().optional().transform(val => val ? clean(val) : ""),
-  questions: z.array(questionsSchema).optional(),
+  cvQuestions: z.array(questionsSchema).optional(),
+  // aiQuestions: z.array(questionsSchema).optional(),
+  aiQuestions: z.array(questionsSchema)
+    .default([])
+    .refine(arr => arr.reduce((sum, cat) => sum + (cat.questions?.length || 0), 0) >= 5, {
+    message: 'Please add at least 5 Interview questions.'
+  }),
   orgID: z.string(),
   status: z.string().optional(),
   createdBy: z.any().optional(),
   lastEditedBy: z.any().optional(),
   requireVideo: z.boolean().optional(),
-  screeningSetting: z.any().optional(),
   salaryNegotiable: z.boolean().optional(),  
 });
 

@@ -5,10 +5,12 @@ import RichTextEditor from "@/lib/components/CareerComponents/RichTextEditor";
 import CustomDropdown from "@/lib/components/CareerComponents/CustomDropdown";
 import philippineCitiesAndProvinces from "../../../../public/philippines-locations.json";
 import { useFormContext, Controller } from "react-hook-form";
+import CareerFormTipsContainer from "./CareerFormTipsContainer";
 
 type Props = {
     career: any,
     onFormStateChange?: (isEmpty: boolean) => void,
+    onTitleChange?: (title: string) => void,
 }
 
 const workSetupOptions = [
@@ -32,7 +34,22 @@ const employmentTypeOptions = [
     },
 ];
 
-export default function CareerFormDetails({ career, onFormStateChange }: Props) {
+const jobDetailTips = [
+    {
+        title: "Use clear, standard job titles",
+        description: `for better searchability (e.g., "Software Engineer" instead of "Code Ninja" or "Tech Rockstar").`,
+    },
+    {
+        title: "Avoid abbreviations",
+        description: `or internal role codes that applicants may not understand (e.g., use "QA Engineer" instead of "QE II" or "QA-TL").`,
+    },
+    {
+        title: "Keep it concise",
+        description: `— job titles should be no more than a few words (2-4 max), avoid fluff or marketing terms.`,
+    },
+]
+
+export default function CareerFormDetails({ career, onFormStateChange, onTitleChange }: Props) {
     const { register, control, watch, setValue, formState: { errors } } = useFormContext();
     
     const selectedProvince = watch('province');
@@ -40,6 +57,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
     const [cityList, setCityList] = useState<{ name: string; province: string }[]>([]);
 
     const salaryNegotiable = watch('salaryNegotiable');
+    const jobTitle = watch('jobTitle');
 
     const watchedFields = watch([
         "jobTitle",
@@ -97,8 +115,14 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
         }
     }, [career, setValue]);
 
+    // listens for jobTitle
+    // purely for UI render purposes
+     useEffect(() => {
+        onTitleChange?.(jobTitle);
+    }, [jobTitle, onTitleChange]);
+
     return (
-        <div style={{ border: '1px solid red', overflowY: 'auto', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 16, alignItems: "flex-start", marginTop: 16 }}>
+        <div style={{ border: '2px solid red', overflowY: 'auto', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 24, alignItems: "flex-start", marginTop: 16 }}>
             <div style={{ width: "60%", display: "flex", flexDirection: "column", gap: 24 }}>
                 <div className="layered-card-middle">
 
@@ -118,7 +142,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                         placeholder="Enter job title"
                         />
                         { errors.jobTitle?.message && (
-                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350 }}>
+                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400 }}>
                                 {errors.jobTitle.message as string}
                             </p>
                         )}
@@ -141,7 +165,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                             placeholder="Select Employment Type"
                                         />
                                         { fieldState.error && (
-                                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                                 {fieldState.error.message}
                                             </p>
                                         )}
@@ -164,7 +188,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                             placeholder="Select Work Setup"
                                         />
                                         { fieldState.error && (
-                                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                                 {fieldState.error.message}
                                             </p>
                                         )}
@@ -192,7 +216,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                                 placeholder="Select Country"
                                             />
                                             { fieldState.error && (
-                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                                     {fieldState.error.message}
                                                 </p>
                                             )}
@@ -215,7 +239,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                                 placeholder="Select State / Province"
                                             />
                                             { fieldState.error && (
-                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                                     {fieldState.error.message}
                                                 </p>
                                             )}
@@ -238,7 +262,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                                 placeholder="Select City"
                                             />
                                             { fieldState.error && (
-                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                                <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                                     {fieldState.error.message}
                                                 </p>
                                             )}
@@ -254,11 +278,11 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                             <Controller
                                 name="salaryNegotiable"
                                 control={control}
-                                defaultValue={true}
+                                defaultValue={career?.salaryNegotiable ?? true}
                                 render={({ field: { onChange, value }}) => (
                                     <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: 8, minWidth: "130px" }}>
                                         <label className="switch">
-                                            <input type="checkbox" checked={salaryNegotiable} onChange={() => onChange(!value)} />
+                                            <input type="checkbox" checked={salaryNegotiable} onChange={(e) => onChange(e.target.checked)} />
                                             <span className="slider round"></span>
                                         </label>
                                         <span style={{fontSize: 16, color: "#181D27", fontWeight: 700}}>Negotiable</span>
@@ -312,7 +336,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                     </span>
                                 </div>
                                 {errors.minimumSalary?.message && (
-                                    <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                    <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                     {errors.minimumSalary.message as string}
                                     </p>
                                 )}
@@ -362,7 +386,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                     </span>
                                 </div>
                                 {errors.maximumSalary?.message && (
-                                    <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                    <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                     {errors.maximumSalary.message as string}
                                     </p>
                                 )}
@@ -376,6 +400,7 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                     <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8, padding: '0px 5px' }}>
                         <span style={{fontSize: 19, color: "#181D27", fontWeight: 700}}>2. Job Description</span>
                     </div>
+                    <div className="layered-card-content">
                         <Controller
                             name="description"
                             control={control}
@@ -384,14 +409,29 @@ export default function CareerFormDetails({ career, onFormStateChange }: Props) 
                                 <>
                                     <RichTextEditor text={value} setText={onChange} />
                                     { fieldState.error && (
-                                        <p style={{ color: '#e53935', fontSize: 16, fontWeight: 350, paddingTop: '5px' }}>
+                                        <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                             {fieldState.error.message}
                                         </p>
                                     )}
                                 </>
                             )}
                         />
+                    </div>
                 </div>
+            </div>
+             <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 24 }}>
+                <CareerFormTipsContainer>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24,  padding: '10px' }}>
+                        {jobDetailTips.map((tip, idx) => (
+                            <div key={idx}>
+                                <span style={{ fontSize: 16, color: "#181D27", fontWeight: 700 }}>
+                                    {tip.title}
+                                </span>
+                                &nbsp;{tip.description}
+                            </div>
+                        ))}
+                    </div>
+                </CareerFormTipsContainer>
             </div>
         </div>
     )

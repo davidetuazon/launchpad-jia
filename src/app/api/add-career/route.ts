@@ -21,10 +21,12 @@ export async function POST(request: Request) {
     const {
       jobTitle,
       description,
-      questions,
       lastEditedBy,
       createdBy,
-      screeningSetting,
+      cvScreeningSetting,
+      cvQuestions,
+      aiScreeningSetting,
+      aiQuestions,
       orgID,
       requireVideo,
       location,
@@ -46,7 +48,7 @@ export async function POST(request: Request) {
     // still enforces requirements on 'active' career postings
     const isDraft = status === 'inactive';
     // Validate required fields
-    if (!jobTitle || !description || !location || !workSetup || (!isDraft && !questions) ) {
+    if (!jobTitle || !description || !location || !workSetup || (!isDraft && !aiQuestions) ) {
       return NextResponse.json(
         {
           error:
@@ -102,7 +104,6 @@ export async function POST(request: Request) {
       id: guid(),
       jobTitle,
       description,
-      questions,
       location,
       workSetup,
       workSetupRemarks,
@@ -111,7 +112,10 @@ export async function POST(request: Request) {
       lastEditedBy,
       createdBy,
       status: status || "active",
-      screeningSetting,
+      cvScreeningSetting,
+      cvQuestions,
+      aiScreeningSetting,
+      aiQuestions,
       orgID,
       requireVideo,
       lastActivityAt: new Date(),

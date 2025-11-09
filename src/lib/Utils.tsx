@@ -623,4 +623,5 @@ export const clearUserSession = () => {
   localStorage.removeItem("role");
   localStorage.removeItem("activeOrg");
   localStorage.removeItem("orgList");
+  localStorage.removeItem('career_draft');
 }

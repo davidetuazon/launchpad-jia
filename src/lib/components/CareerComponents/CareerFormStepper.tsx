@@ -1,10 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import InterviewQuestionGeneratorV2 from "./InterviewQuestionGeneratorV2";
-import RichTextEditor from "@/lib/components/CareerComponents/RichTextEditor";
-import CustomDropdown from "@/lib/components/CareerComponents/CustomDropdown";
-import philippineCitiesAndProvinces from "../../../../public/philippines-locations.json";
 import { candidateActionToast, errorToast } from "@/lib/Utils";
 import { useAppContext } from "@/lib/context/AppContext";
 import axios from "axios";
@@ -17,11 +13,14 @@ import { careerInputSanitation, careerInputData } from "@/lib/utils/helpersV2";
 import {  zodResolver } from '@hookform/resolvers/zod';
 
 import CareerFormDetails from "../CareerStepperComponents/CareerFormDetails";
+import CareerFormCVScreening from "../CareerStepperComponents/CareerFormCVScreening";
+import CareerFormAiInterviewSetup from "../CareerStepperComponents/CareerFormAiInterviewSetup";
 
 export default function CareerFormStepper({ career, formType, setShowEditModal }: { career?: any, formType: string, setShowEditModal?: (show: boolean) => void }) {
     const { user, orgID } = useAppContext();
     const [isSavingCareer, setIsSavingCareer] = useState(false);
     const [isFormEmpty, setIsFormEmpty] = useState(true);
+    const [currJobTitle, setCurrJobTitle] = useState('');
     const [showSaveModal, setShowSaveModal] = useState<'active' | 'inactive' | ''>('');
     const [step, setStep] = useState(0);
     
@@ -34,6 +33,9 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
 
     const stepFields = [
         ['jobTitle', 'employmentType', 'workSetup', 'minimumSalary', 'maximumSalary', 'description'],
+        ['cvScreeningSetting', 'cvQuestions'],
+        ['aiScreeningSetting', 'aiQuestions'],
+        [],
     ]
 
     const methods = useForm({
@@ -43,16 +45,15 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
             requireVideo: career?.requireVideo ?? true,
             salaryNegotiable: career?.salaryNegotiable ?? true,
         },
-        mode: 'onSubmit',
-        reValidateMode: 'onBlur'
+        mode: 'onChange',
+        reValidateMode: 'onChange'
     });
 
     const { trigger } = methods;
     
     /**
      * Career draft setting-getting functions
-     * currently localstorage-based
-     * TODO: Improvement: allow partial saving on the db as well to allow persistence across devices
+     * uses local storage to store drafts that persists through sessions
      */
     const getStorageKey = useCallback(() => {
         return career?._id ? `career_${career._id}` : 'career_draft';
@@ -68,6 +69,9 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
         }
     }, [getStorageKey]);
 
+    // get draft from local storage
+    // resets form fields with data from draft
+    // if draft is somehow corrupted, remove it to avoid potential error
     const loadFromLocal = useCallback(() => {
         const key = getStorageKey();
         const savedDraft = localStorage.getItem(key);
@@ -86,6 +90,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
         }
     }, [getStorageKey, methods]);
 
+    // handle draft clearing
     const clearLocalDraft = useCallback(() => {
         localStorage.removeItem(getStorageKey());
     }, [getStorageKey]);
@@ -105,6 +110,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
         return subscribe.unsubscribe();
     }, [methods, saveToLocal, step]);
 
+    // loads draft on mount
     useEffect(() => {
         loadFromLocal();
     }, [loadFromLocal]);
@@ -114,6 +120,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
      * progressing the form saves each step as a draft to localstorage
      */
     // ensure required form fields are filled for the current step before progressing the form
+    // returns true for valid, false for invalid
     const validateStep = async (stepIndex: number) => {
         const fields = stepFields[stepIndex];
         const isValid = await trigger(fields, { shouldFocus: true });
@@ -168,7 +175,6 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
             createdBy: userInfoSlice,
             minimumSalary: isNaN(Number(data.minimumSalary)) ? null : Number(data.minimumSalary),
             maximumSalary: isNaN(Number(data.maximumSalary)) ? null : Number(data.maximumSalary),
-            question: data.questions || [],
         }
 
         try {
@@ -233,7 +239,12 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
     };
 
     return (
-        <div className="col">
+        <div
+            className="col"
+            style={{
+                paddingBottom: '20px'
+            }}
+        >
             <FormProvider {...methods}>
                 <form
                     onSubmit={(e) => {
@@ -249,11 +260,12 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                             justifyContent: 'space-between',
                             gap: "10px",
                             paddingBottom: '10px',
-                            borderBottom: '1px solid #D5D7DA'
+                            borderBottom: '1px solid #D5D7DA',
+                            marginBottom: '10px',
                         }}
                     >
                         <h1 style={{ fontSize: "24px", fontWeight: 550, color: "#111827" }}>
-                            {career?.jobTitle ? `[Draft] ${career.jobTitle}` : 'Add new career'}
+                            {step !== 0 && currJobTitle ? `[Draft] ${currJobTitle}` : 'Add new career'}
                         </h1>
                         <div
                             style={{
@@ -340,16 +352,16 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                                     whiteSpace: "nowrap"
                                 }}
                             >
-                                Publish&nbsp;
                                 <i className="la la-check-circle" style={{ color: "#fff", fontSize: 20, marginRight: 8 }}></i>
+                                Publish&nbsp;
                             </button>
                         )}
                         </div>
                     </div>
-                    {step === 0 && <CareerFormDetails career={career} onFormStateChange={(empty) => setIsFormEmpty(empty)} />}
-                    {/* {step === 1 && <CareerFormCVScreening />}
-                    {step === 2 && <CareerFormAiInterviewSetup />}
-                    {step === 3 && <CareerFormReview />} */}
+                    {step === 0 && <CareerFormDetails career={career} onFormStateChange={(empty) => setIsFormEmpty(empty)} onTitleChange={setCurrJobTitle} />}
+                    {step === 1 && <CareerFormCVScreening career={career} />}
+                    {step === 2 && <CareerFormAiInterviewSetup career={career} />}
+                    {/* {step === 3 && <CareerFormReview career={career} />} */}
                 </form>
                 {showSaveModal && (
                     <CareerActionModal 
