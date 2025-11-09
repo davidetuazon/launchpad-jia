@@ -15,6 +15,7 @@ import {  zodResolver } from '@hookform/resolvers/zod';
 import CareerFormDetails from "../CareerStepperComponents/CareerFormDetails";
 import CareerFormCVScreening from "../CareerStepperComponents/CareerFormCVScreening";
 import CareerFormAiInterviewSetup from "../CareerStepperComponents/CareerFormAiInterviewSetup";
+import CareerFormReview from "../CareerStepperComponents/CareerFormReview";
 
 export default function CareerFormStepper({ career, formType, setShowEditModal }: { career?: any, formType: string, setShowEditModal?: (show: boolean) => void }) {
     const { user, orgID } = useAppContext();
@@ -259,13 +260,20 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                             alignItems: "center",
                             justifyContent: 'space-between',
                             gap: "10px",
-                            paddingBottom: '10px',
-                            borderBottom: '1px solid #D5D7DA',
+                            padding: '20px 0px',
+                            borderBottom: '2px solid #e4e6e9ff',
                             marginBottom: '10px',
                         }}
                     >
                         <h1 style={{ fontSize: "24px", fontWeight: 550, color: "#111827" }}>
-                            {step !== 0 && currJobTitle ? `[Draft] ${currJobTitle}` : 'Add new career'}
+                            {step !== 0 && currJobTitle
+                                ? (
+                                    <span>
+                                        <span style={{ color: '#6A7B86' }}>[Draft]</span> {currJobTitle}
+                                    </span>
+                                )
+                                : ( 'Add new career' )
+                            }
                         </h1>
                         <div
                             style={{
@@ -361,7 +369,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                     {step === 0 && <CareerFormDetails career={career} onFormStateChange={(empty) => setIsFormEmpty(empty)} onTitleChange={setCurrJobTitle} />}
                     {step === 1 && <CareerFormCVScreening career={career} />}
                     {step === 2 && <CareerFormAiInterviewSetup career={career} />}
-                    {/* {step === 3 && <CareerFormReview career={career} />} */}
+                    {step === 3 && <CareerFormReview formData={methods.getValues()} steps={steps} />}
                 </form>
                 {showSaveModal && (
                     <CareerActionModal 

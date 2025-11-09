@@ -113,7 +113,7 @@ export default function CareerFormAiInterviewSetup({ career, onFormStateChange }
     }, [career, setValue]);
 
     return (
-        <div style={{ border: '1px solid red', overflowY: 'auto', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 16, alignItems: "flex-start", marginTop: 16 }}>
+        <div style={{ overflowY: 'auto', maxHeight: '100dvh', scrollBehavior: 'smooth', scrollbarWidth: 'none', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 16, alignItems: "flex-start", marginTop: 26 }}>
             <div style={{ width: "60%", display: "flex", flexDirection: "column", gap: 24 }}>
                 <div className="layered-card-middle">
 
@@ -162,7 +162,7 @@ export default function CareerFormAiInterviewSetup({ career, onFormStateChange }
                                             <input type="checkbox" checked={requireVideo} onChange={(e) => onChange(e.target.checked)} />
                                             <span className="slider round"></span>
                                         </label>
-                                        <span style={{fontSize: 16, color: "#181D27", fontWeight: 700}}>
+                                        <span style={{fontSize: 16, color: "#181D27", fontWeight: 400}}>
                                             {requireVideo ? 'Yes' : 'No'}
                                         </span>
                                     </div>
@@ -197,7 +197,7 @@ export default function CareerFormAiInterviewSetup({ career, onFormStateChange }
                     />
                 </div>
             </div>
-            <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 24 }}>
+            <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 24, position: 'sticky', top: 0, }}>
                 <CareerFormTipsContainer>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 24,  padding: '10px' }}>
                     {aiScreeningTips.map((tip, idx) => (

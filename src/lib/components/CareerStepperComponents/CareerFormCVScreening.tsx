@@ -50,7 +50,7 @@ export default function CareerFormCVScreening({ career, onFormStateChange }: Pro
     }, [watchedFields, onFormStateChange]);
 
     return (
-            <div style={{ border: '1px solid red', overflowY: 'auto', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 16, alignItems: "flex-start", marginTop: 16 }}>
+            <div style={{ overflowY: 'auto', maxHeight: '100dvh', scrollBehavior: 'smooth', scrollbarWidth: 'none', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 16, alignItems: "flex-start", marginTop: 26 }}>
                 <div style={{ width: "60%", display: "flex", flexDirection: "column", gap: 24 }}>
                     <div className="layered-card-middle">
 
@@ -100,7 +100,7 @@ export default function CareerFormCVScreening({ career, onFormStateChange }: Pro
                         </div>
                     </div>
                 </div>
-                 <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 24 }}>
+                 <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 24, position: 'sticky', top: 0 }}>
                     <CareerFormTipsContainer>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 24,  padding: '10px' }}>
                         {cvScreeningTips.map((tip, idx) => (

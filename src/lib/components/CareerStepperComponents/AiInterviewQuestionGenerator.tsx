@@ -350,10 +350,10 @@ export default function (props) {
 
   return (
     <div>
-        <div className="layered-card-middle">
+        <div className="layered-card-middle" style={{ padding: 0 }}>
           <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
               <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <span style={{fontSize: 19, color: "#181D27", fontWeight: 700}}>
+                <span style={{fontSize: 19, color: "#181D27", fontWeight: 700, paddingLeft: '0px 5px'}}>
                   2. AI Interview Questions 
                 </span>
                 <div style={{ borderRadius: "50%", width: 30, height: 22, border: "1px solid #D5D9EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, backgroundColor: "#F8F9FC", color: "#181D27", fontWeight: 700 }}>
@@ -363,7 +363,7 @@ export default function (props) {
               <button style={{ width: "fit-content", background: "black", color: "#fff", border: "1px solid #E9EAEB", padding: "8px 16px", borderRadius: "60px", cursor: "pointer", whiteSpace: "nowrap"}} onClick={() => {
                 generateAllQuestions();
                   }}>
-                <i className="la la-bolt" style={{ fontSize: 20 }}></i> Generate all questions
+                <i className="la la-bolt" style={{ fontSize: 20 }}></i> Generate Questions
               </button>
           </div>
             <div className="layered-card-content">

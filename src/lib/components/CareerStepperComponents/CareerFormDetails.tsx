@@ -122,7 +122,7 @@ export default function CareerFormDetails({ career, onFormStateChange, onTitleCh
     }, [jobTitle, onTitleChange]);
 
     return (
-        <div style={{ border: '2px solid red', overflowY: 'auto', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 24, alignItems: "flex-start", marginTop: 16 }}>
+        <div style={{ overflowY: 'auto', maxHeight: '100dvh', scrollBehavior: 'smooth', scrollbarWidth: 'none', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 24, alignItems: "flex-start", marginTop: 26 }}>
             <div style={{ width: "60%", display: "flex", flexDirection: "column", gap: 24 }}>
                 <div className="layered-card-middle">
 
@@ -419,7 +419,7 @@ export default function CareerFormDetails({ career, onFormStateChange, onTitleCh
                     </div>
                 </div>
             </div>
-             <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 24 }}>
+             <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 24, position: 'sticky', top: 0 }}>
                 <CareerFormTipsContainer>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 24,  padding: '10px' }}>
                         {jobDetailTips.map((tip, idx) => (
