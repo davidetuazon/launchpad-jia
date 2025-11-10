@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import CustomDropdown from "@/lib/components/CareerComponents/CustomDropdown";
 import { useFormContext, Controller } from "react-hook-form";
 import CareerFormTipsContainer from "./CareerFormTipsContainer";
+import PreScreeningQuestionGenerator from "./PreScreeningQuestionGenerator";
 
 type Props = {
     career: any,
@@ -33,7 +34,29 @@ const cvScreeningTips = [
 ]
 
 export default function CareerFormCVScreening({ career, onFormStateChange }: Props) {
-    const { register, control, watch, setValue, formState: { errors } } = useFormContext();
+    const { control, watch, setValue } = useFormContext();
+
+    const initQuestions = () => {
+        try {
+        const savedDraft = localStorage.getItem('career_draft');
+        const parsed = savedDraft ? JSON.parse(savedDraft) : null;
+        return parsed?.data?.cvQuestions || career?.cvQuestions || [];
+        } catch {
+        return career?.cvQuestions || [];
+        }
+    }
+    const [questions, setQuestions] = useState(initQuestions);
+
+    // Sync with form
+    useEffect(() => {
+        setValue('cvQuestions', questions);
+    }, [questions, setValue]);
+
+    // Track empty state
+    useEffect(() => {
+        const isEmpty = questions.length === 0;
+        onFormStateChange?.(isEmpty);
+    }, [questions, onFormStateChange]);
 
     const watchedFields = watch([
         "cvScreeningSetting",
@@ -85,18 +108,26 @@ export default function CareerFormCVScreening({ career, onFormStateChange }: Pro
                     </div>
                     <div className="layered-card-middle">
 
-                        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8, padding: '0px 5px' }}>
-                        <span style={{fontSize: 19, color: "#181D27", fontWeight: 700}}>2. Pre-Screening Questions</span>
-                        </div>
-                        <div className="layered-card-content">
-
-                           {/* TODO: Create a question generator for pre-screeing questions  */}
-                        {/* <InterviewQuestionGeneratorV2
-                            questions={questions}
-                            setQuestions={(questions) => setQuestions(questions)}
-                            jobTitle={jobTitle}
-                            description={description}
-                        /> */}
+                        {/*  CV/PRE-SCREENING QUESTIONS */}        
+                        <div>
+                            
+                            <Controller
+                                name="cvQuestions"
+                                control={control}
+                                render={({ field: { onChange }, fieldState }) => (
+                                    <>
+                                        { fieldState.error && (
+                                            <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingLeft: '5px' }}>
+                                                {fieldState.error.message}
+                                            </p>
+                                        )}
+                                        <PreScreeningQuestionGenerator
+                                            questions={questions}
+                                            setQuestions={setQuestions}
+                                        />
+                                    </>
+                                )}
+                            />
                         </div>
                     </div>
                 </div>

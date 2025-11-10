@@ -1,6 +1,7 @@
 'use client'
 
-import React from "react";
+import React, { useEffect } from "react";
+import ReviewCvQuestionsContainer from "./ReviewCvQuestionsContainer";
 
 type Props = {
     formData: any,
@@ -72,12 +73,25 @@ export default function ReviewCVSCreening({ formData }: Props) {
             {/* PRE-SCREENING QUESTIONS */}
             <div style={containerStyleHelper('flex', true)}>
                 <div style={styles.content}>
-                    <span style={styles.title}>Pre-Screening Questions</span>
-                    <span style={styles.title}>
-                        TODO: Finish the add pre-screening questions logic
-                        <br/>
-                        DEADLINE: Tomorrow, November 10, 2025
-                    </span>
+                    <span style={{...styles.title, display: 'flex', flexDirection: 'row', gap: 12 }}>
+                        Pre-Screening Questions
+                        <div
+                            style={{
+                                fontSize: 14,
+                                padding: '0px 10px',
+                                background: "#D9E2EC",
+                                borderRadius: '13px',
+                                border: '1px solid #B0C4D4'
+                                }}
+                            >
+                            {formData.cvQuestions.length}
+                        </div>
+                        </span>
+                    {formData?.cvQuestions.map((q, idx) => (
+                        <div key={idx}>
+                            <ReviewCvQuestionsContainer title={q.title} type={q.type} options={q.options} />
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

@@ -34,7 +34,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
 
     const stepFields = [
         ['jobTitle', 'employmentType', 'workSetup', 'minimumSalary', 'maximumSalary', 'description'],
-        ['cvScreeningSetting'],
+        ['cvScreeningSetting', 'cvQuestions'],
         ['aiScreeningSetting', 'aiQuestions'],
         [],
     ]

@@ -73,7 +73,7 @@ export function processDisplayDate(date) {
 const clean = (val: string) => sanitizeHtml(val, { allowedTags: [], allowedAttributes: {} });
 
 // nested question validation + sanitation
-const questionsSchema = z.object({
+const aiQuestionsSchema = z.object({
   id: z.union([z.string(), z.number()]),
   category: z.string(),
   questionCountToAsk: z.number().nullable(),
@@ -81,6 +81,18 @@ const questionsSchema = z.object({
     id: z.string(),
     question: z.string().min(1, { message: 'Question cannot be empty' })
   })).default([]),
+});
+
+// nested question validation + sanitation
+const cvQuestionsSchema = z.object({
+  id: z.union([z.string(), z.number()]),
+  title: z.string().min(1, { message: 'Questions cannot be empty.' }),
+  type: z.string(),
+  options: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    value: z.union([z.string(), z.number()]).optional()
+  })).refine(arr => arr.length > 0, { message: 'At least one option is required.' })
 });
 
 const genericErrorMessage = 'This is a required field.';
@@ -99,8 +111,18 @@ export const careerInputSanitation = z.object({
   cvScreeningSetting: z.string().min(1, { message: genericErrorMessage }).optional(),
   aiScreeningSetting: z.string().min(1, { message: genericErrorMessage }).optional(),
   workSetupRemarks: z.string().optional().transform(val => val ? clean(val) : ""),
-  cvQuestions: z.array(questionsSchema).optional(),
-  aiQuestions: z.array(questionsSchema)
+  // cvQuestions: z.array(cvQuestionsSchema).optional(),
+  cvQuestions: z.array(cvQuestionsSchema)
+    .refine(arr => 
+    arr.every(q => 
+      q.title.trim() !== "" && 
+      q.options && 
+      q.options.length > 0 && 
+      q.options.every(o => o.label.trim() !== "")
+    ), {
+      message: "All pre-screening questions must have a title and at least one non-empty option."
+    }),
+  aiQuestions: z.array(aiQuestionsSchema)
     .default([])
     .refine(arr => arr.reduce((sum, cat) => sum + (cat.questions?.length || 0), 0) >= 5, {
     message: 'Please add at least 5 Interview questions.'

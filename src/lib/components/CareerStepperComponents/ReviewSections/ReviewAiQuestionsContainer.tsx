@@ -4,10 +4,10 @@ import React, { useEffect } from "react"
 
 type Props = {
     title: any,
-    questions: any,
+    questions?: any,
 }
 
-export default function ReviewQuestionsContainer({ title, questions }: Props) {
+export default function ReviewAiQuestionsContainer({ title, questions }: Props) {
 
     return (
         <div style={{ gap: 10 }}>

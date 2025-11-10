@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { map } from "zod";
-import ReviewQuestionsContainer from "./ReviewQuestionsContainer";
+import ReviewAiQuestionsContainer from "./ReviewAiQuestionsContainer";
 
 type Props = {
     formData: any,
@@ -115,7 +115,7 @@ export default function ReviewAiInterviewSetup({ formData }: Props) {
                         </span>
                     {formData?.aiQuestions.map((q, idx) => (
                         <div key={idx}>
-                            <ReviewQuestionsContainer title={q.category} questions={q.questions} />
+                            <ReviewAiQuestionsContainer title={q.category} questions={q.questions} />
                         </div>
                     ))}
                 </div>
