@@ -34,7 +34,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
 
     const stepFields = [
         ['jobTitle', 'employmentType', 'workSetup', 'minimumSalary', 'maximumSalary', 'description'],
-        ['cvScreeningSetting', 'cvQuestions'],
+        ['cvScreeningSetting'],
         ['aiScreeningSetting', 'aiQuestions'],
         [],
     ]
@@ -47,7 +47,8 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
             salaryNegotiable: career?.salaryNegotiable ?? true,
         },
         mode: 'onChange',
-        reValidateMode: 'onChange'
+        reValidateMode: 'onChange',
+        shouldUnregister: false,
     });
 
     const { trigger } = methods;
@@ -117,8 +118,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
     }, [loadFromLocal]);
 
     /**
-     * stepper form navigation
-     * progressing the form saves each step as a draft to localstorage
+     * form validations for each step
      */
     // ensure required form fields are filled for the current step before progressing the form
     // returns true for valid, false for invalid
@@ -143,6 +143,21 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
         return true;
     };
 
+    // validate all steps
+    // stops at first invalid step
+    const validateAllSteps = async () => {
+        for (let i = 0; i < stepFields.length; i++) {
+            const valid = await validateStep(i);
+            if (!valid) return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * stepper form navigation
+     * progressing the form saves each step as a draft to localstorage
+     */
     // enforces form validity check before allowing to progress
     const handleNext = async () => {
         if (!(await validateStep(step))) return;
@@ -162,6 +177,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
      */
     // unified submit handler for both add and edit career
     const onSubmit = async (data: careerInputData, status: 'active' | 'inactive') => {
+        console.log({ data });
         let userInfoSlice = {
             image: user.image,
             name: user.name,
@@ -207,12 +223,11 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
         }
     }
 
-    // handle redirect to form field with errors
+    // enforce redirect to form field with errors
     // also handles opening action modal for action confirmation
     const handleFinalSubmit = async (status: 'active' | 'inactive') => {
-        for (let i = 0; i < stepFields.length; i++) {
-            if (!(await validateStep(i))) return;
-        }
+        const allValid = await validateAllSteps();
+        if (!allValid) return;
         setShowSaveModal(status);
     }
 
@@ -221,22 +236,21 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
     // skips validations for career drafts marked as 'inactive'
     // enforces validations on to be published careers
     const confirmSaveCareer = async (status: 'active' | 'inactive') => {
-        setIsSavingCareer(true);
-        const data = methods.getValues();
         setShowSaveModal('');
-        try {
+        const data = methods.getValues();
+
+        if (status === 'inactive') {
             // For inactive/draft saves, skip validation
-            if (status === 'inactive') {
-                await onSubmit(data, status);
-                return;
-            } else {
-                await methods.handleSubmit(async (data) => {
-                    await onSubmit(data, status);
-                })();
-            }
-        } finally {
-            setIsSavingCareer(false);
+            onSubmit(data, status);
+            return;
         }
+
+        // run validations on all steps
+        const allValid = await validateAllSteps();
+        if (!allValid) return;
+        
+        // validations passed, allow publish career
+        await onSubmit(data, status);
     };
 
     return (
@@ -347,7 +361,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                         ) : (
                             <button
                                 type="button"
-                                onClick={() => handleFinalSubmit('active')}
+                                onClick={() =>handleFinalSubmit('active')}
                                 disabled={isSavingCareer}
                                 style={{
                                     width: "fit-content",
@@ -374,7 +388,10 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                 {showSaveModal && (
                     <CareerActionModal 
                         action={showSaveModal} 
-                        onAction={(action) => confirmSaveCareer(action as 'active' | 'inactive')} 
+                        onAction={(action) => {
+                            if (action) confirmSaveCareer(action as 'active' | 'inactive');
+                            else setShowSaveModal('');
+                        }} 
                     />
                 )}
                 {isSavingCareer && (

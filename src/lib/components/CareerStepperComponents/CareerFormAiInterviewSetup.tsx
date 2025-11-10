@@ -68,11 +68,12 @@ export default function CareerFormAiInterviewSetup({ career, onFormStateChange }
     }
 
     // initialize questions and syncs form on mount
-    const [questions, setQuestions] = useState(() => {
-        const initQs = initQuestions(career);
-        setValue('aiQuestions', initQs); 
-        return initQs;
-    });
+    const [questions, setQuestions] = useState(() => initQuestions(career) || []);
+
+    useEffect(() => {
+        setValue('aiQuestions', questions);
+    }, [questions, setValue]);
+
 
     // update questions and form together
     const handleQuestions = (newQuestions) => {
@@ -151,7 +152,10 @@ export default function CareerFormAiInterviewSetup({ career, onFormStateChange }
                             Require candidates to keep their camera on. Recordings will appear on their analysis page.
                         </span>
                         <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", padding: '5px 0px' }}>
-                            <span>Require Video Interview</span>
+                            <div>
+                                <i className="la la-video" style={{ padding: '0px 10px', transform: 'scale(1.5)' }}></i>
+                                <span>Require Video Interview</span>
+                            </div>
                             <Controller
                                 name="requireVideo"
                                 control={control}
@@ -173,28 +177,28 @@ export default function CareerFormAiInterviewSetup({ career, onFormStateChange }
                 </div>
                 <div className="layered-card-middle">
 
-                {/* AI INTERVIEW QUESTIONS */}
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8, padding: '0px 5px' }}>
-                </div>
-                    <Controller
-                        name="aiQuestions"
-                        control={control}
-                        render={({ field: { onChange }, fieldState }) => (
-                            <>
-                                { fieldState.error && (
-                                    <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingLeft: '5px' }}>
-                                        {fieldState.error.message}
-                                    </p>
-                                )}
-                                <AiInterviewQuestionGenerator
-                                    questions={questions}
-                                    setQuestions={handleQuestions}
-                                    jobTitle={career?.jobTitle}
-                                    description={career?.description}
-                                />
-                            </>
-                        )}
-                    />
+                    {/* AI INTERVIEW QUESTIONS */}
+                    <div>
+                        <Controller
+                            name="aiQuestions"
+                            control={control}
+                            render={({ field: { onChange }, fieldState }) => (
+                                <>
+                                    { fieldState.error && (
+                                        <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingLeft: '5px' }}>
+                                            {fieldState.error.message}
+                                        </p>
+                                    )}
+                                    <AiInterviewQuestionGenerator
+                                        questions={questions}
+                                        setQuestions={handleQuestions}
+                                        jobTitle={career?.jobTitle}
+                                        description={career?.description}
+                                    />
+                                </>
+                            )}
+                        />
+                    </div>
                 </div>
             </div>
             <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 24, position: 'sticky', top: 0, }}>

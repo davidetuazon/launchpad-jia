@@ -407,12 +407,12 @@ export default function CareerFormDetails({ career, onFormStateChange, onTitleCh
                             defaultValue={career?.description || ""}
                             render={({ field: { onChange, value }, fieldState }) => (
                                 <>
-                                    <RichTextEditor text={value} setText={onChange} />
                                     { fieldState.error && (
                                         <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400, paddingTop: '5px' }}>
                                             {fieldState.error.message}
                                         </p>
                                     )}
+                                    <RichTextEditor text={value} setText={onChange} />
                                 </>
                             )}
                         />

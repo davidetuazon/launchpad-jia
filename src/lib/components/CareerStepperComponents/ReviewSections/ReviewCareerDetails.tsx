@@ -1,6 +1,6 @@
 'use client'
 
-import React from "react"
+import React, { useEffect } from "react"
 
 type Props = {
     formData: any,
@@ -49,7 +49,7 @@ export default function ReviewCareerDetails({ formData }: Props) {
                 </div>
                 <div style={styles.content}>
                     <span style={styles.title}>City</span>
-                    <span >{formData?.province}</span>
+                    <span >{formData?.location}</span>
                 </div>
             </div>
 
@@ -83,7 +83,8 @@ export default function ReviewCareerDetails({ formData }: Props) {
             <div style={containerStyleHelper('flex', true)}>
                 <div style={styles.content}>
                     <span style={styles.title}>Job Description</span>
-                    <span >{formData?.description}</span>
+                    <span dangerouslySetInnerHTML ={{ __html: formData?.description }}>
+                    </span>
                 </div>
             </div>
         </div>

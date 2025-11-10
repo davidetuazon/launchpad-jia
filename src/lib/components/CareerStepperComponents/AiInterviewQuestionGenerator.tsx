@@ -12,7 +12,7 @@ import FullScreenLoadingAnimation from "../CareerComponents/FullScreenLoadingAni
 import test from "node:test";
 import { useFormContext } from "react-hook-form";
 
-export default function (props) {
+export default function AiInterviewQuestionGenerator (props) {
   const { questions, setQuestions, jobTitle, description } = props;
   const [questionGenPrompt, setQuestionGenPrompt] = useState("");
   const questionCount = 5;
@@ -349,7 +349,7 @@ export default function (props) {
   }, []);
 
   return (
-    <div>
+    <div >
         <div className="layered-card-middle" style={{ padding: 0 }}>
           <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
               <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8 }}>

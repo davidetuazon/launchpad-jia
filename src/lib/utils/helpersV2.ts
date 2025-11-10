@@ -100,7 +100,6 @@ export const careerInputSanitation = z.object({
   aiScreeningSetting: z.string().min(1, { message: genericErrorMessage }).optional(),
   workSetupRemarks: z.string().optional().transform(val => val ? clean(val) : ""),
   cvQuestions: z.array(questionsSchema).optional(),
-  // aiQuestions: z.array(questionsSchema).optional(),
   aiQuestions: z.array(questionsSchema)
     .default([])
     .refine(arr => arr.reduce((sum, cat) => sum + (cat.questions?.length || 0), 0) >= 5, {

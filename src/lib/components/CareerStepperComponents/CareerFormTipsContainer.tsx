@@ -1,6 +1,7 @@
 'use client'
 
-import React from "react"
+import React from "react";
+import hilight from '../../../../public/iconsV3/hilight.svg';
 
 type Props = {
     children?: any,
@@ -14,7 +15,15 @@ export default function CareerFormTipsContainer(props: Props) {
 
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
                     <div style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <i className="la la-bolt" style={{ color: "black", fontSize: 20 }}></i>
+                        <i className="la la-lightbulb"
+                            style={{
+                                // WebkitBackgroundClip: 'text',
+                                // backgroundClip: 'text',
+                                // color: 'transparent',
+                                // backgroundColor: 'linear-gradient(90deg, #9fcaed 0%, #ceb6da 33%, #ebacc9 66%, #fccec0 100%)',
+                                fontSize: 23
+                            }}
+                        ></i>
                     </div>
                         <span style={{fontSize: 19, color: "#181D27", fontWeight: 700}}>Tips</span>
                 </div>
