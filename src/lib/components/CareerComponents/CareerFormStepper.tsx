@@ -85,6 +85,14 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
             if (parsed?.data) {
                 methods.reset(parsed.data);
                 if (typeof parsed.step === 'number') setStep(parsed.step);
+
+                const empty = stepFields[parsed.step || 0].some(field => {
+                    const value = parsed.data[field];
+                    if (Array.isArray(value)) return value.length === 0;
+                    if (typeof value === 'string') return value.trim() === '';
+                    return !value;
+                });
+                setIsFormEmpty(empty);
             } else {
                 methods.reset(parsed);
             }
@@ -112,6 +120,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
 
         return subscribe.unsubscribe();
     }, [methods, saveToLocal, step]);
+
 
     // loads draft on mount
     useEffect(() => {
