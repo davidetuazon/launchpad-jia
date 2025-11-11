@@ -192,8 +192,6 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
             maximumSalary: isNaN(Number(data.maximumSalary)) ? null : Number(data.maximumSalary),
         }
 
-        console.log({ payload });
-
         try {
             setIsSavingCareer(true);
             const response = formType === "add"

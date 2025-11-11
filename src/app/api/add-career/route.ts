@@ -4,36 +4,56 @@ import { guid } from "@/lib/Utils";
 import { ObjectId } from "mongodb";
 import { careerInputSanitation } from "@/lib/utils/helpersV2";
 
+const draftCareerInputSanitation = careerInputSanitation
+  .partial() // make all fields optional
+  .extend({
+    cvQuestions: careerInputSanitation.shape.cvQuestions.optional(), // skip refine
+    aiQuestions: careerInputSanitation.shape.aiQuestions.optional(), // skip refine
+  });
+
 export async function POST(request: Request) {
   try {
     // added sanitazion layer
     // makes sure only santizied values pass through
     const body = await request.json();
-
     const isDraft = body.status === 'inactive';
     let data;
 
     if (!isDraft) {
+      // Full validation for published
       const parsed = careerInputSanitation.safeParse(body);
       if (!parsed.success) {
-        console.error("Validation failed:", parsed.error.format());
         return NextResponse.json(
           { error: 'Invalid or missing input', details: parsed.error.errors },
           { status: 400 }
         );
       }
       data = parsed.data;
+      console.log({ validated: data });
     } else {
-      // For drafts, skip validation but clean minimal strings
+      // Draft: only validate existing fields
+      const draftPayload: Partial<typeof body> = {};
+      for (const key in body) {
+        if (body[key] !== undefined && body[key] !== null) {
+          draftPayload[key] = body[key];
+        }
+      }
+
+      const parsed = draftCareerInputSanitation.safeParse(draftPayload);
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: 'Invalid or malformed draft input', details: parsed.error.errors },
+          { status: 400 }
+        );
+      }
+
+      // merge sanitized fields and preserve optional ones
       data = {
-        ...body,
-        jobTitle: body.jobTitle?.trim() || "",
-        description: body.description?.trim() || "",
-        location: body.location?.trim() || "",
-        workSetup: body.workSetup?.trim() || "",
+        ...parsed.data,
         cvQuestions: Array.isArray(body.cvQuestions) ? body.cvQuestions : [],
-        aiQuestions: Array.isArray(body.aiQuestions) ? body.aiQuestions : [],
+        // aiQuestions: Array.isArray(body.aiQuestions) ? body.aiQuestions : [],
       };
+      console.log({ partial: data });
     }
 
     const {

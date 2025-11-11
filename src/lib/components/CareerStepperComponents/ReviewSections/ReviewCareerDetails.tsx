@@ -1,10 +1,20 @@
 'use client'
 
-import React, { useEffect } from "react"
+import React, { useEffect } from "react";
+import sanitizeHtml from 'sanitize-html';
 
 type Props = {
     formData: any,
 }
+
+const allowedTags = [
+  'b', 'i', 'u', 'strike', 'strong', 'em', 'p', 'div', 'br', 'ul', 'ol', 'li'
+];
+
+const cleanHtml = (val: string) => sanitizeHtml(val, {
+  allowedTags,
+  allowedAttributes : {},
+});
 
 export default function ReviewCareerDetails({ formData }: Props) {
     
@@ -83,7 +93,7 @@ export default function ReviewCareerDetails({ formData }: Props) {
             <div style={containerStyleHelper('flex', true)}>
                 <div style={styles.content}>
                     <span style={styles.title}>Job Description</span>
-                    <span dangerouslySetInnerHTML ={{ __html: formData?.description }}>
+                    <span dangerouslySetInnerHTML ={{ __html: cleanHtml(formData?.description || '')}}>
                     </span>
                 </div>
             </div>
