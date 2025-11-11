@@ -10,11 +10,13 @@ Each step was designed as an independent, reusable unit that integrates smoothly
 Each step (Career Details, Pre-Screening, CV Screening, etc.) connects through a shared stepper.
 Using FormProvider, all steps access the same form state for validation, draft saving, and submission.
 
+```tsx
 <FormProvider {...methods}>
   <CareerDetailsStep />
   <PreScreeningStep />
   <CVScreeningStep />
 </FormProvider>
+```
 
 This structure simplifies scaling and ensures consistent UX and data integrity.
 
