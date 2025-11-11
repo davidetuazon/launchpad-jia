@@ -83,16 +83,24 @@ const aiQuestionsSchema = z.object({
   })).default([]),
 });
 
+const OptionSchema = z.union([
+  z.object({
+    id: z.string(),
+    label: z.string(),
+    value: z.union([z.string(), z.number()]).optional()
+  }),
+  z.object({
+    id: z.string(),
+    min: z.number(),
+    max: z.number()
+  })
+]);
 // nested question validation + sanitation
 const cvQuestionsSchema = z.object({
   id: z.union([z.string(), z.number()]),
   title: z.string().min(1, { message: 'Questions cannot be empty.' }),
   type: z.string(),
-  options: z.array(z.object({
-    id: z.string(),
-    label: z.string(),
-    value: z.union([z.string(), z.number()]).optional()
-  })).refine(arr => arr.length > 0, { message: 'At least one option is required.' })
+  options: z.array(OptionSchema).refine(arr => arr.length > 0, { message: 'At least one option is required.' })
 });
 
 const genericErrorMessage = 'This is a required field.';
@@ -113,15 +121,23 @@ export const careerInputSanitation = z.object({
   workSetupRemarks: z.string().optional().transform(val => val ? clean(val) : ""),
   // cvQuestions: z.array(cvQuestionsSchema).optional(),
   cvQuestions: z.array(cvQuestionsSchema)
-    .refine(arr => 
-    arr.every(q => 
-      q.title.trim() !== "" && 
-      q.options && 
-      q.options.length > 0 && 
-      q.options.every(o => o.label.trim() !== "")
-    ), {
-      message: "All pre-screening questions must have a title and at least one non-empty option."
+  .refine(arr =>
+    arr.every(q => {
+      if (!q.title.trim()) return false;
+      if (!q.options || q.options.length === 0) return false;
+
+      if (q.type === "dropdown") {
+        return q.options.every(o => "label" in o && o.label.trim() !== "");
+      } else if (q.type === "range") {
+        return q.options.every(o => "min" in o && "max" in o && typeof o.min === "number" && typeof o.max === "number");
+      }
+
+      return true; // fallback
     }),
+    {
+      message: "All pre-screening questions must have a title and at least one valid option."
+    }
+  ),
   aiQuestions: z.array(aiQuestionsSchema)
     .default([])
     .refine(arr => arr.reduce((sum, cat) => sum + (cat.questions?.length || 0), 0) >= 5, {

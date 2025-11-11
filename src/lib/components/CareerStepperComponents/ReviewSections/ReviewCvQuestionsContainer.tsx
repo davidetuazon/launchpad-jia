@@ -1,29 +1,33 @@
 'use client'
 
-import React, { useEffect } from "react"
+import React from "react"
 
 type Props = {
-    title: any,
-    type: any,
-    options: any,
+    title: string,
+    type: 'dropdown' | 'range',
+    options: any[],
 }
 
 export default function ReviewCvQuestionsContainer({ title, type, options }: Props) {
-    
-
     return (
         <div style={{ gap: 10 }}>
-            <span style={{ color: 'black', fontSize: 16, fontWeight: 500 }}>{title}</span>
-            <span style={{ color: 'black', fontSize: 16, fontWeight: 500 }}>{type}</span>
-            <div style={{ display: 'block' }}>
-                <ol style={{ listStyleType: 'decimal' }}>
-                    {options.map((opt) => (
-                        <li key={opt.id} style={{ display: 'list-item' }}>
-                            <span>{opt.label}</span>
-                        </li>
-                    ))}
-                </ol>
-            </div>
+            <ol style={{ listStyleType: 'decimal', paddingLeft: 20 }}>
+                <li style={{ fontSize: 16, marginBottom: 8 }}>
+                    {title}
+                    <ul style={{ listStyleType: 'disc', paddingLeft: 20, marginTop: 4 }}>
+                        {options.map((opt) => (
+                            <li key={opt.id} style={{ marginBottom: 4 }}>
+                                {type === 'dropdown' && <span>{opt.label}</span>}
+                                {type === 'range' && (
+                                    <span>
+                                        Preferred: PHP {opt.min?.toLocaleString()} - PHP {opt.max?.toLocaleString()}
+                                    </span>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </li>
+            </ol>
         </div>
     )
 }

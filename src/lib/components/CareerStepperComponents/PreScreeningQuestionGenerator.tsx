@@ -67,15 +67,42 @@ export default function PreScreeningQuestionGenerator ({ questions, setQuestions
     // updates question type
     const handleTypeChange = (idx: number, newType: string) => {
         const updated = [...questions];
-        updated[idx].type = newType;
-        setQuestions(updated);
+        const target = { ...updated[idx] };
+
+        if (!target.savedOptions) target.savedOptions = {};
+
+        // store current options by type before switching
+        target.savedOptions[target.type] = target.options?.map(opt => ({ ...opt })) || [];
+
+        // update type
+        target.type = newType;
+
+        // restore previously saved options if any
+        if (target.savedOptions[newType]) {
+            target.options = target.savedOptions[newType].map(opt => ({ ...opt }));
+        } else if (newType === "range") {
+            target.options = [{ id: guid(), min: null, max: null }];
+        } else if (newType === "dropdown") {
+            target.options = [{ id: guid(), label: "" }];
+        }
+
+        updated[idx] = target;
+
+        // send only clean data to parent
+        setQuestions(updated.map(({ savedOptions, ...rest }) => rest));
     };
 
     // add options to questions
     const handleAddOption = (idx: number) => {
         const updated = [...questions];
-        if (!updated[idx].options) updated[idx].options = [];
-        updated[idx].options.push({ id: guid(), label: '' });
+        const target = { ...updated[idx] };
+
+        const options = target.options ? [...target.options] : [];
+        options.push({ id: guid(), label: '' });
+
+        target.options = options;
+        updated[idx] = target;
+
         setQuestions(updated);
     };
 
@@ -110,6 +137,13 @@ export default function PreScreeningQuestionGenerator ({ questions, setQuestions
         if (updated[questionIdx].options) {
             updated[questionIdx].options = updated[questionIdx].options.filter((_, i) => i !== optionIdx);
         }
+        setQuestions(updated);
+    };
+
+    const handleRangeChange = (qIdx: number, field: "min" | "max", value: number) => {
+        const updated = [...questions];
+        const opt = updated[qIdx].options?.[0];
+        if (opt) opt[field] = value;
         setQuestions(updated);
     };
 
@@ -161,11 +195,15 @@ export default function PreScreeningQuestionGenerator ({ questions, setQuestions
                                         
                                         {/* OPTIONS */}
                                         <div style={{  }}>
-                                            {q.options?.length === 0 && (
+
+                                            {/* RENDER WHEN THERE ARE CURRENTLY NO OPTIONS ADDED YET */}
+                                            {(q.type === 'dropdown' && q.options?.length === 0) && (
                                                 <div style={{ borderBottom: '1px solid #D5D7DA', paddingBottom: '20px' }}>
                                                     <span>Add at least one (1) option for this question.</span>
                                                 </div>
                                             )}
+
+                                            {/* TYPE: DROPDOWN OPTIONS */}
                                             {(q.type === 'dropdown' && q.options?.length > 0) && (
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24, }}>
                                                     {q.options.map((opt, optIdx) => (
@@ -200,18 +238,77 @@ export default function PreScreeningQuestionGenerator ({ questions, setQuestions
                                                     ))}
                                                 </div>
                                             )}
+
+                                            {/* TYPE: RANGE OPTIONS */}
+                                            {q.type === 'range' && (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 24, }}>
+                                                    {q.options.map((opt, optIdx) => (
+                                                         <div
+                                                            key={opt.id}
+                                                            style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', gap: 26 }}
+                                                        >
+                                                            <div
+                                                                style={{ padding: '0px', position: 'relative', width: '100%' }}
+                                                            >
+                                                                <span>Minimum</span> 
+                                                                <div>
+                                                                    <label
+                                                                        htmlFor={`option_${opt.id}`}
+                                                                        style={{ fontSize: 19, position: 'absolute', top: 33, left: 10,  }}
+                                                                    >PHP</label>
+                                                                    <input
+                                                                        key={`option_${opt.id}`}
+                                                                        id={`option_${opt.id}`}
+                                                                        type="number"
+                                                                        className="form-control"
+                                                                        placeholder="0"
+                                                                        min={0}
+                                                                        value={opt.min}
+                                                                        onChange={(e) => handleRangeChange(qIdx, "min", Number(e.target.value))}
+                                                                        style={{ width: '100%', border: 'none', borderRadius: '8px', padding: '5px 10px', paddingLeft: 50 }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                style={{ padding: '0px', position: 'relative', width: '100%' }}
+                                                            >
+                                                                <span>Maximum</span> 
+                                                                <div>
+                                                                    <label
+                                                                        htmlFor={`option_${opt.id}`}
+                                                                        style={{ fontSize: 19, position: 'absolute', top: 33, left: 10,  }}
+                                                                    >PHP</label>
+                                                                    <input
+                                                                        key={`option_${opt.id}`}
+                                                                        id={`option_${opt.id}`}
+                                                                        type="number"
+                                                                        className="form-control"
+                                                                        placeholder="0"
+                                                                        min={0}
+                                                                        value={opt.max}
+                                                                        onChange={(e) => handleRangeChange(qIdx, "max", Number(e.target.value))}
+                                                                        style={{ width: '100%', border: 'none', borderRadius: '8px', padding: '5px 10px', paddingLeft: 50 }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* ADD OPTION BUTTON */}
-                                        <div style={{ padding: '30px 0px', paddingLeft: '20px', borderBottom: '1px solid #D5D9EB' }}>
-                                            <div
-                                                style={{ display: 'flex', flexDirection: 'row', gap: 5, alignItems: 'center', border: '2px solid #D5D9EB', borderRadius: '13px', width: 'fit-content', padding: '3px 6px', cursor: 'pointer' }}
-                                                onClick={() => handleAddOption(qIdx)}
-                                            >
-                                                <i className="la la-plus" style={{ transform: 'scale(1.2)' }}></i>
-                                                <span style={{ fontWeight: 700, }}>Add Option</span>
+                                        {q.type === 'dropdown' && (
+                                            <div style={{ padding: '30px 0px', paddingLeft: '20px', borderBottom: '1px solid #D5D9EB' }}>
+                                                <div
+                                                    style={{ display: 'flex', flexDirection: 'row', gap: 5, alignItems: 'center', border: '2px solid #D5D9EB', borderRadius: '13px', width: 'fit-content', padding: '3px 6px', cursor: 'pointer' }}
+                                                    onClick={() => handleAddOption(qIdx)}
+                                                >
+                                                    <i className="la la-plus" style={{ transform: 'scale(1.2)' }}></i>
+                                                    <span style={{ fontWeight: 700, }}>Add Option</span>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
 
                                     {/* DELETE QUESTION BUTTON */}

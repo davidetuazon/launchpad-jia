@@ -12,7 +12,7 @@ export default function CareerReviewSection({ title, steps, children }: Props) {
     const [open, setOpen] = useState(true);
 
     return (
-        <div style={{ overflowY: 'auto', maxHeight: '100dvh', scrollBehavior: 'smooth', scrollbarWidth: 'none', display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 24, alignItems: "flex-start", marginTop: 26 }}>
+        <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", gap: 24, alignItems: "flex-start", marginTop: 26 }}>
             <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 24 }}>
                 <div className="layered-card-middle">
                     <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: 'space-between', gap: 8, padding: '0px 5px' }}>

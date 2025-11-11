@@ -59,7 +59,7 @@ export default function ReviewCareerDetails({ formData }: Props) {
                     <span style={styles.title}>Minimum Salary</span>
                     <span >
                         {formData?.minimumSalary !== null || undefined
-                            ?  `PHP ${formData.minimumSalary.toLocaleString()}.00`
+                            ?  `PHP ${formData.minimumSalary.toLocaleString()}`
                             : formData?.salaryNegotiable
                                 ? 'Negotiable'
                                 : 'N/A'
@@ -70,7 +70,7 @@ export default function ReviewCareerDetails({ formData }: Props) {
                     <span style={styles.title}>Maximum Salary</span>
                     <span >
                         {formData?.maximumSalary !== null || undefined
-                            ?  `PHP ${formData.maximumSalary.toLocaleString()}.00`
+                            ?  `PHP ${formData.maximumSalary.toLocaleString()}`
                             : formData?.salaryNegotiable
                                 ? 'Negotiable'
                                 : 'N/A'
