@@ -9,14 +9,32 @@ export async function POST(request: Request) {
     // added sanitazion layer
     // makes sure only santizied values pass through
     const body = await request.json();
-    const parsed = careerInputSanitation.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid or missing input: ', details: parsed.error.errors },
-        { status: 400 }
-      );
+
+    const isDraft = body.status === 'inactive';
+    let data;
+
+    if (!isDraft) {
+      const parsed = careerInputSanitation.safeParse(body);
+      if (!parsed.success) {
+        console.error("Validation failed:", parsed.error.format());
+        return NextResponse.json(
+          { error: 'Invalid or missing input', details: parsed.error.errors },
+          { status: 400 }
+        );
+      }
+      data = parsed.data;
+    } else {
+      // For drafts, skip validation but clean minimal strings
+      data = {
+        ...body,
+        jobTitle: body.jobTitle?.trim() || "",
+        description: body.description?.trim() || "",
+        location: body.location?.trim() || "",
+        workSetup: body.workSetup?.trim() || "",
+        cvQuestions: Array.isArray(body.cvQuestions) ? body.cvQuestions : [],
+        aiQuestions: Array.isArray(body.aiQuestions) ? body.aiQuestions : [],
+      };
     }
-    const data = parsed.data;
 
     const {
       jobTitle,
@@ -44,16 +62,10 @@ export async function POST(request: Request) {
     if (typeof orgID !== 'string') {
       return NextResponse.json({ error: 'Invalid orgID format'}, { status: 400 });
     }
-    // bypass questions requirements for career drafts
-    // still enforces requirements on 'active' career postings
-    const isDraft = status === 'inactive';
-    // Validate required fields
-    if (!jobTitle || !description || !location || !workSetup || (!isDraft && !aiQuestions) ) {
+
+    if (!jobTitle || !description || !location || !workSetup) {
       return NextResponse.json(
-        {
-          error:
-            "Job title, description, questions, location and work setup are required",
-        },
+        { error: "Job title, description, location, and work setup are required" },
         { status: 400 }
       );
     }

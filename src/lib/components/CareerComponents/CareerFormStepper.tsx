@@ -153,7 +153,6 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
         return true;
     }
 
-
     /**
      * stepper form navigation
      * progressing the form saves each step as a draft to localstorage
@@ -177,7 +176,6 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
      */
     // unified submit handler for both add and edit career
     const onSubmit = async (data: careerInputData, status: 'active' | 'inactive') => {
-        console.log({ data });
         let userInfoSlice = {
             image: user.image,
             name: user.name,
@@ -193,6 +191,8 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
             minimumSalary: isNaN(Number(data.minimumSalary)) ? null : Number(data.minimumSalary),
             maximumSalary: isNaN(Number(data.maximumSalary)) ? null : Number(data.maximumSalary),
         }
+
+        console.log({ payload });
 
         try {
             setIsSavingCareer(true);
@@ -226,8 +226,13 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
     // enforce redirect to form field with errors
     // also handles opening action modal for action confirmation
     const handleFinalSubmit = async (status: 'active' | 'inactive') => {
-        const allValid = await validateAllSteps();
-        if (!allValid) return;
+        if (status === 'active') {
+            const allValid = await validateAllSteps();
+            if (!allValid) return;
+        } else {
+            if (!(await validateStep(step))) return;
+        }
+
         setShowSaveModal(status);
     }
 

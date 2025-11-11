@@ -121,8 +121,8 @@ export const careerInputSanitation = z.object({
   workSetupRemarks: z.string().optional().transform(val => val ? clean(val) : ""),
   // cvQuestions: z.array(cvQuestionsSchema).optional(),
   cvQuestions: z.array(cvQuestionsSchema)
-  .refine(arr =>
-    arr.every(q => {
+    .optional()
+    .refine(arr => !arr || arr.every(q => {
       if (!q.title.trim()) return false;
       if (!q.options || q.options.length === 0) return false;
 
@@ -133,11 +133,9 @@ export const careerInputSanitation = z.object({
       }
 
       return true; // fallback
-    }),
-    {
+    }), {
       message: "All pre-screening questions must have a title and at least one valid option."
-    }
-  ),
+  }),
   aiQuestions: z.array(aiQuestionsSchema)
     .default([])
     .refine(arr => arr.reduce((sum, cat) => sum + (cat.questions?.length || 0), 0) >= 5, {
