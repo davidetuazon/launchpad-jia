@@ -136,10 +136,10 @@ export default function CareerFormDetails({ career, onFormStateChange, onTitleCh
                         <span style={{fontSize: 16, color: "#181D27", fontWeight: 700}}>Basic Information</span>
                         <span>Job Title</span>
                         <input
-                        {...register('jobTitle')}
-                        defaultValue={career?.jobTitle || ""}
-                        className="form-control"
-                        placeholder="Enter job title"
+                            {...register('jobTitle')}
+                            defaultValue={career?.jobTitle || ""}
+                            className="form-control"
+                            placeholder="Enter job title"
                         />
                         { errors.jobTitle?.message && (
                             <p style={{ color: '#e53935', fontSize: 16, fontWeight: 400 }}>

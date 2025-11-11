@@ -34,7 +34,7 @@ const cvScreeningTips = [
 ]
 
 export default function CareerFormCVScreening({ career, onFormStateChange }: Props) {
-    const { control, watch, setValue } = useFormContext();
+    const { control, watch, setValue, trigger } = useFormContext();
 
     const initQuestions = () => {
         try {
@@ -50,7 +50,8 @@ export default function CareerFormCVScreening({ career, onFormStateChange }: Pro
     // Sync with form
     useEffect(() => {
         setValue('cvQuestions', questions);
-    }, [questions, setValue]);
+        trigger('cvQuestions');
+    }, [questions, setValue, trigger]);
 
     // Track empty state
     useEffect(() => {

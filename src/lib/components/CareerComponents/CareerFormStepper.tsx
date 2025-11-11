@@ -16,6 +16,7 @@ import CareerFormDetails from "../CareerStepperComponents/CareerFormDetails";
 import CareerFormCVScreening from "../CareerStepperComponents/CareerFormCVScreening";
 import CareerFormAiInterviewSetup from "../CareerStepperComponents/CareerFormAiInterviewSetup";
 import CareerFormReview from "../CareerStepperComponents/CareerFormReview";
+import StepProgressBar from "../CareerStepperComponents/StepProgressBar";
 
 export default function CareerFormStepper({ career, formType, setShowEditModal }: { career?: any, formType: string, setShowEditModal?: (show: boolean) => void }) {
     const { user, orgID } = useAppContext();
@@ -277,9 +278,7 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                             alignItems: "center",
                             justifyContent: 'space-between',
                             gap: "10px",
-                            padding: '20px 0px',
-                            borderBottom: '2px solid #e4e6e9ff',
-                            marginBottom: '10px',
+                            padding: '5px 0px',
                         }}
                     >
                         <h1 style={{ fontSize: "24px", fontWeight: 550, color: "#111827" }}>
@@ -382,6 +381,20 @@ export default function CareerFormStepper({ career, formType, setShowEditModal }
                             </button>
                         )}
                         </div>
+                    </div>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: 'space-between',
+                            gap: "10px",
+                            padding: '20px 0px',
+                            borderBottom: '2px solid #e4e6e9ff',
+                            marginBottom: '10px',
+                        }}
+                    >
+                    <StepProgressBar step={step} steps={steps}/>
                     </div>
                     {step === 0 && <CareerFormDetails career={career} onFormStateChange={(empty) => setIsFormEmpty(empty)} onTitleChange={setCurrJobTitle} />}
                     {step === 1 && <CareerFormCVScreening career={career} />}

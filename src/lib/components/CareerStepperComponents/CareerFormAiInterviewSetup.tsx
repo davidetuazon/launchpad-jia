@@ -43,7 +43,7 @@ const aiScreeningTips = [
 ]
 
 export default function CareerFormAiInterviewSetup({ career, onFormStateChange }: Props) {
-    const { control, watch, setValue } = useFormContext();
+    const { control, watch, setValue, trigger } = useFormContext();
     const requireVideo = watch('requireVideo');
 
     /**
@@ -72,7 +72,8 @@ export default function CareerFormAiInterviewSetup({ career, onFormStateChange }
 
     useEffect(() => {
         setValue('aiQuestions', questions);
-    }, [questions, setValue]);
+        trigger('aiQuestions')
+    }, [questions, setValue, trigger]);
 
 
     // update questions and form together
